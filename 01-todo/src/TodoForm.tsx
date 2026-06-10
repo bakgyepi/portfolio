@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+import { getLastDayOfMonth } from './utils/date';
+import type { Todo, TodoFormData } from './types/todo';
 import './App.scss';
 
 const EMOJI_CATEGORIES = [
@@ -12,7 +15,7 @@ const EMOJI_CATEGORIES = [
         id: 'tasks',
         icon: '📝',
         title: '업무 & 학습',
-        emojis: ['📝', '📌', '📅', '⏰', '💻', '💡', '🔑', '📁', '📈', '🚀', '🛠️', '🎯', '📚', '✍️', '✉️', '📞', '💡', '🔔', '🔋', '⚙️']
+        emojis: ['📝', '📌', '📅', '⏰', '💻', '💡', '🔑', '📁', '📈', '🚀', '🛠️', '🎯', '📚', '✍️', '✉️', '📞', '🔔', '🔋', '⚙️']
     },
     {
         id: 'activities',
@@ -28,67 +31,62 @@ const EMOJI_CATEGORIES = [
     }
 ];
 
-// 로컬 시간 기준 YYYY-MM-DD 문자열 반환 함수
-const getLocalDateString = (date = new Date()) => {
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-    return localDate.toISOString().split('T')[0];
+type TodoFormProps = {
+    mode?: 'add' | 'edit';
+    selectedDate: string;
+    itemToEdit?: Todo;
+    onSave: (formData: TodoFormData) => void;
+    onCancel: () => void;
+    onDelete?: () => void;
 };
 
-// 특정 날짜가 속한 달의 마지막 날짜 문자열 반환 함수
-const getLastDayOfMonth = (dateString) => {
-    const parts = dateString.split('-');
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10); // 1-based index (e.g. 6 = June)
-    const lastDay = new Date(year, month, 0);
-    return getLocalDateString(lastDay);
-};
-
-function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) {
+function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel, onDelete }: TodoFormProps) {
     const [inputValue, setInputValue] = useState(() => {
-        return mode === 'edit' && itemToEdit ? itemToEdit.text : '';
+        if (mode === 'edit' && itemToEdit) {
+            return itemToEdit.text; // 기존 투두의 글자를 초기값으로!
+        }
+        return ''; // add 모드일 때는 빈 값
     });
-    const [itemType, setItemType] = useState(() => {
+    const [itemType, setItemType] = useState<Todo['type']>(() => {
         return mode === 'edit' && itemToEdit ? itemToEdit.type : 'todo';
     });
     const [selectedEmoji, setSelectedEmoji] = useState(() => {
         return mode === 'edit' && itemToEdit ? itemToEdit.emoji : '😊';
     });
     const [hasDeadline, setHasDeadline] = useState(() => {
-        if (mode === 'edit' && itemToEdit && itemToEdit.type === 'routine') {
+        if (mode === 'edit' && itemToEdit?.type === 'routine') {
             const lastDay = getLastDayOfMonth(itemToEdit.startDate);
             return itemToEdit.endDate !== lastDay;
         }
         return false;
     });
     const [endDateValue, setEndDateValue] = useState(() => {
-        if (mode === 'edit' && itemToEdit && itemToEdit.endDate) {
+        if (mode === 'edit' && itemToEdit?.type === 'routine' && itemToEdit.endDate) {
             return itemToEdit.endDate;
         }
-        const d = new Date();
-        d.setDate(d.getDate() + 7);
-        return getLocalDateString(d);
+        return getLastDayOfMonth(selectedDate);
     });
     const [alarmTimeValue, setAlarmTimeValue] = useState(() => {
-        return mode === 'edit' && itemToEdit && itemToEdit.alarmTime ? itemToEdit.alarmTime : '';
+        return mode === 'edit' && itemToEdit?.type === 'routine' && itemToEdit.alarmTime ? itemToEdit.alarmTime : '';
     });
 
     const [showPicker, setShowPicker] = useState(false);
     const [activeCategory, setActiveCategory] = useState('smileys');
 
-    const pickerRef = useRef(null);
-    const triggerRef = useRef(null);
+    const pickerRef = useRef<HTMLDivElement | null>(null);
+    const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-    // const month2 = parseInt(selectedDate.split('-')[1], 10); 
-    // const day2 = parseInt(selectedDate.split('-')[2], 10); 
-
+    const activeEmojiCategory = EMOJI_CATEGORIES.find(c => c.id === activeCategory) ?? EMOJI_CATEGORIES[0];
 
     // 외부 영역 클릭 시 이모지 선택창 닫기
     useEffect(() => {
-        const handleClickOutside = (event) => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) return;
+
             if (
-                pickerRef.current && !pickerRef.current.contains(event.target) &&
-                triggerRef.current && !triggerRef.current.contains(event.target)
+                pickerRef.current && !pickerRef.current.contains(target) &&
+                triggerRef.current && !triggerRef.current.contains(target)
             ) {
                 setShowPicker(false);
             }
@@ -102,11 +100,11 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
         };
     }, [showPicker]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!inputValue.trim()) return;
 
-        const data = {
+        const data: TodoFormData = {
             type: itemType,
             emoji: selectedEmoji,
             text: inputValue,
@@ -119,12 +117,6 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
         }
 
         onSave(data);
-    };
-
-    // 투두/루틴 삭제 함수
-    const handleDeleteTodo = (e) => {
-        e.preventDefault();
-        setTodos(todos.filter((todo) => todo.id !== id));
     };
 
     return (
@@ -193,11 +185,11 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                         </div>
 
                                         <div className="emoji-category-title">
-                                            {EMOJI_CATEGORIES.find(c => c.id === activeCategory).title}
+                                            {activeEmojiCategory.title}
                                         </div>
 
                                         <div className="emoji-grid">
-                                            {EMOJI_CATEGORIES.find(c => c.id === activeCategory).emojis.map((emoji) => (
+                                            {activeEmojiCategory.emojis.map((emoji) => (
                                                 <button
                                                     key={emoji}
                                                     type="button"
@@ -217,7 +209,7 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                             <input
                                 type="text"
                                 value={inputValue}
-                                disabled={mode === 'edit'}
+                                // disabled={mode === 'edit'}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder={itemType === 'todo' ? "할 일을 입력하세요..." : "매일 반복할 루틴을 입력하세요..."}
                                 className="todo-input" style={{ background: mode === 'edit' ? 'var(--code-bg, #f4f3ec)' : 'var(--bg, #fff)' }}
@@ -239,8 +231,8 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                         value={endDateValue}
                                         onChange={(e) => {
                                             const newValue = e.target.value;
-                                            setEndDateValue(newValue); // 1. 먼저 날짜 상태를 업데이트하고
-                                            
+                                            setEndDateValue(newValue);
+                                            // 1. 먼저 날짜 상태를 업데이트하고
                                             // 2. 핵심: 입력값이 비어있지 않으면(값이 있으면) true, 비어있으면(취소하면) false
                                             setHasDeadline(newValue !== ""); 
                                         }}
@@ -268,28 +260,36 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                 {/* 4. 작업 버튼 */}
                 <div className="form-actions">
                     {mode === 'edit' ? (
-
-                        <button
-                            onClick={() => handleDeleteTodo(todo.id)}
-                            className='btn btn-red btn-small'
-                        >
-                            삭제
-                        </button>
+                        <>
+                            <button
+                                type="button"
+                                onClick={onDelete}
+                                className='btn-delete'>
+                                삭제
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={!inputValue.trim()}
+                                className="btn-submit" style={{ opacity: !inputValue.trim() ? 0.5 : 1 }}>
+                                수정
+                            </button>
+                        </>
                     ) : (
-                        
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="btn-cancel">
-                        취소
-                    </button>
+                        <>
+                            <button
+                                type="button"
+                                onClick={onCancel}
+                                className="btn-cancel">
+                                취소
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={!inputValue.trim()}
+                                className="btn-submit" style={{ opacity: !inputValue.trim() ? 0.5 : 1 }}>
+                                저장
+                            </button>
+                        </>
                     )}
-                    <button
-                        type="submit"
-                        disabled={!inputValue.trim()}
-                        className="btn-submit" style={{ opacity: !inputValue.trim() ? 0.5 : 1 }}>
-                        저장
-                    </button>
                 </div>
             </form>
         </div>

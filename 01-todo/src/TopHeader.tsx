@@ -1,8 +1,10 @@
+import type { ViewMode } from './types/todo';
+
 // 2. 부모에게서 viewMode와 setViewMode를 Props로 받아옵니다.
 interface TopHeaderProps {
-  viewMode: string;
+  viewMode: ViewMode;
   selectedDate: string;
-  setViewMode: (mode: string) => void;
+  setViewMode: (mode: ViewMode) => void;
 }
 
 function TopHeader({ viewMode, selectedDate, setViewMode }: TopHeaderProps) {
@@ -10,6 +12,7 @@ function TopHeader({ viewMode, selectedDate, setViewMode }: TopHeaderProps) {
   const selectedYear = selectedDateTitle.slice(0,4)
   const selectedMonth = selectedDateTitle.slice(4,6)
   const selectedYM = selectedYear +'년 ' + selectedMonth + '월'
+  
 
   return (
     <div className="top-header">
@@ -41,6 +44,7 @@ function TopHeader({ viewMode, selectedDate, setViewMode }: TopHeaderProps) {
         >
           월
         </button>
+        {/* <button onClick={handleSetToday} className="today-button">오늘</button> */}
 
       </div>
     </div>

@@ -1,142 +1,14 @@
 import { useState, useEffect } from 'react';
 import TodoForm from './TodoForm';
 import TopHeader from './TopHeader';
+import { getLocalDateString, getMonthlyCalendarGrid, getLastDayOfMonth, getPrevMonthYear, getWeekDates } from './utils/date';
+import { useTodos } from './hooks/useTodos';
+import type { DayCompletionStats, RoutineItem, Todo, TodoFormData, ViewMode } from './types/todo';
 import './App.scss'
 
-// 로컬 시간 기준 YYYY-MM-DD 문자열 반환 함수
-const getLocalDateString = (date = new Date()) => {
-  const offset = date.getTimezoneOffset();
-  const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-  return localDate.toISOString().split('T')[0];
-};
-
-// 특정 날짜가 속한 달의 마지막 날짜 문자열 반환 함수
-const getLastDayOfMonth = (dateString) => {
-  const parts = dateString.split('-');
-  const year = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10); // 1-based index (e.g. 6 = June)
-  const lastDay = new Date(year, month, 0);
-  return getLocalDateString(lastDay);
-};
-
-// 특정 날짜의 이전 달(YYYY-MM) 문자열 반환 함수
-const getPrevMonthYear = (dateString) => {
-  const parts = dateString.split('-');
-  const year = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10);
-
-  let prevMonth = month - 1;
-  let prevYear = year;
-  if (prevMonth === 0) {
-    prevMonth = 12;
-    prevYear -= 1;
-  }
-  return `${prevYear}-${prevMonth.toString().padStart(2, '0')}`;
-};
-
-// 기준일이 포함된 월요일~일요일 날짜 배열(YYYY-MM-DD) 반환
-const getWeekDates = (pivotDateString) => {
-  const pivotDate = new Date(pivotDateString);
-  const day = pivotDate.getDay(); // 0: 일요일, 1: 월요일...
-  const diffToMonday = day === 0 ? -6 : -(day - 1);
-
-  const monday = new Date(pivotDate);
-  monday.setDate(pivotDate.getDate() + diffToMonday);
-
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    dates.push(getLocalDateString(d));
-  }
-  return dates;
-};
-
-// 월별 달력 그리드(주 단위 2차원 배열) 생성 함수 (일요일~토요일 기준)
-const getMonthlyCalendarGrid = (year, month) => {
-  const firstDayOfMonth = new Date(year, month, 1);
-  const lastDayOfMonth = new Date(year, month + 1, 0);
-
-  const startOfWeekDay = firstDayOfMonth.getDay(); // 0 = 일요일, 1 = 월요일...
-  const totalDays = lastDayOfMonth.getDate();
-
-  const calendarDays = [];
-
-  // 이전 달 패딩
-  const prevMonthLastDay = new Date(year, month, 0).getDate();
-  for (let i = startOfWeekDay - 1; i >= 0; i--) {
-    const d = new Date(year, month - 1, prevMonthLastDay - i);
-    calendarDays.push({
-      dateString: getLocalDateString(d),
-      dayNumber: d.getDate(),
-      isCurrentMonth: false
-    });
-  }
-
-  // 이번 달 날짜
-  for (let i = 1; i <= totalDays; i++) {
-    const d = new Date(year, month, i);
-    calendarDays.push({
-      dateString: getLocalDateString(d),
-      dayNumber: i,
-      isCurrentMonth: true
-    });
-  }
-
-  // 다음 달 패딩
-  const totalCells = Math.ceil(calendarDays.length / 7) * 7;
-  const nextMonthDaysNeeded = totalCells - calendarDays.length;
-  for (let i = 1; i <= nextMonthDaysNeeded; i++) {
-    const d = new Date(year, month + 1, i);
-    calendarDays.push({
-      dateString: getLocalDateString(d),
-      dayNumber: i,
-      isCurrentMonth: false
-    });
-  }
-
-  const weeks = [];
-  for (let i = 0; i < calendarDays.length; i += 7) {
-    weeks.push(calendarDays.slice(i, i + 7));
-  }
-  return weeks;
-};
-
 function TodoApp() {
-  const MOCK_TODOS = [
-    {
-      id: 1,
-      type: 'todo',
-      emoji: '🏃',
-      text: '아침 러닝',
-      date: getLocalDateString(),
-      completed: false,
-    }
-  ];
-  // 1. 상태 및 마이그레이션 설정
-  const [todos, setTodos] = useState(() => {
-    const savedNewList = localStorage.getItem('todo-routine-list');
-    if (savedNewList) {
-      return JSON.parse(savedNewList);
-    }
-
-    const savedOldList = localStorage.getItem('todo-list');
-    if (savedOldList) {
-      const parsed = JSON.parse(savedOldList);
-      const todayStr = getLocalDateString();
-      return parsed.map(t => ({
-        id: t.id,
-        type: 'todo',
-        emoji: t.emoji || '📝',
-        text: t.text,
-        date: todayStr,
-        completed: t.completed
-      }));
-    }
-    return MOCK_TODOS;
-  });
-
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'weekly' | 'monthly' | 'add' | 'edit'
+  const { todos, setTodos } = useTodos();
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedDate, setSelectedDate] = useState(() => getLocalDateString());
 
   // 월간 보기용 연/월 상태
@@ -146,11 +18,11 @@ function TodoApp() {
   });
 
   // 수정 제어 대상 ID
-  const [editingItemId, setEditingItemId] = useState(null);
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
 
   // 지난달 루틴 가져오기 제어 상태
   const [showImportModal, setShowImportModal] = useState(false);
-  const [selectedImportIds, setSelectedImportIds] = useState([]);
+  const [selectedImportIds, setSelectedImportIds] = useState<number[]>([]);
 
   // 변경사항 로컬 스토리지에 자동 저장
   useEffect(() => {
@@ -196,9 +68,9 @@ function TodoApp() {
   }, [todos]);
 
   // 일정 등록 저장 콜백
-  const handleSaveAdd = (formData) => {
+  const handleSaveAdd = (formData: TodoFormData) => {
     const newId = Date.now();
-    let newItem;
+    let newItem: Todo;
 
     if (formData.type === 'todo') {
       newItem = {
@@ -216,9 +88,9 @@ function TodoApp() {
         emoji: formData.emoji,
         text: formData.text,
         startDate: selectedDate,
-        endDate: formData.endDate,
+        endDate: formData.endDate ?? getLastDayOfMonth(selectedDate),
         completedDates: [],
-        alarmTime: formData.alarmTime
+        alarmTime: formData.alarmTime ?? null
       };
     }
 
@@ -227,15 +99,23 @@ function TodoApp() {
   };
 
   // 일정 수정 저장 콜백
-  const handleSaveEdit = (formData) => {
+  const handleSaveEdit = (formData: TodoFormData) => {
     setTodos(
-      todos.map(todo => {
+      todos.map((todo): Todo => {
         if (todo.id !== editingItemId) return todo;
+
+        if (todo.type === 'todo') {
+          return {
+            ...todo,
+            emoji: formData.emoji,
+          };
+        }
+
         return {
           ...todo,
           emoji: formData.emoji,
-          endDate: formData.endDate,
-          alarmTime: formData.alarmTime
+          endDate: formData.endDate ?? todo.endDate,
+          alarmTime: formData.alarmTime ?? null
         };
       })
     );
@@ -243,8 +123,18 @@ function TodoApp() {
     setViewMode('list');
   };
 
+  const handleDeleteEdit = () => {
+    if (editingItemId === null) return;
+    const isConfirmed = window.confirm("설정한 루틴이 전체 삭제됩니다. \n삭제하시겠습니까?");
+    if (!isConfirmed) return;
+
+    setTodos(todos.filter(todo => todo.id !== editingItemId));
+    setEditingItemId(null);
+    setViewMode('list');
+  };
+
   // 완료 상태 토글 함수 (대상 날짜 지정 가능)
-  const handleToggleTodo = (id, targetDate = selectedDate) => {
+  const handleToggleTodo = (id: number, targetDate = selectedDate) => {
     setTodos(
       todos.map((todo) => {
         if (todo.id !== id) return todo;
@@ -270,7 +160,7 @@ function TodoApp() {
 
     const routinesToImport = lastMonthRoutines.filter(r => selectedImportIds.includes(r.id));
 
-    const importedItems = routinesToImport.map(r => ({
+    const importedItems: RoutineItem[] = routinesToImport.map(r => ({
       id: Date.now() + Math.random(),
       type: 'routine',
       emoji: r.emoji,
@@ -334,7 +224,7 @@ function TodoApp() {
   };
 
   // 날짜별 달성도 계산기 (히트맵용)
-  const getDayCompletionStats = (dateString) => {
+  const getDayCompletionStats = (dateString: string): DayCompletionStats => {
     const activeItems = todos.filter(item => {
       if (item.type === 'todo') {
         return item.date === dateString;
@@ -370,7 +260,7 @@ function TodoApp() {
   });
 
   // 주간 뷰용 루틴 목록 추출 (이번 주 하루라도 걸쳐있는 루틴들)
-  const activeRoutinesThisWeek = todos.filter(item => {
+  const activeRoutinesThisWeek = todos.filter((item): item is RoutineItem => {
     if (item.type !== 'routine') return false;
     return weekDays.some(d => d >= item.startDate && (!item.endDate || d <= item.endDate));
   });
@@ -387,13 +277,13 @@ function TodoApp() {
   const currentMonthStart = `${currentMonthStr}-01`;
   const currentMonthEnd = getLastDayOfMonth(currentMonthStart);
 
-  const currentMonthRoutines = todos.filter(item =>
+  const currentMonthRoutines = todos.filter((item): item is RoutineItem =>
     item.type === 'routine' &&
     item.startDate <= currentMonthEnd &&
     (!item.endDate || item.endDate >= currentMonthStart)
   );
 
-  const lastMonthRoutines = todos.filter(item => {
+  const lastMonthRoutines = todos.filter((item): item is RoutineItem => {
     if (item.type !== 'routine') return false;
     const isActiveInPrevMonth = item.startDate <= prevMonthEnd && (!item.endDate || item.endDate >= prevMonthStart);
     if (!isActiveInPrevMonth) return false;
@@ -402,9 +292,26 @@ function TodoApp() {
     return !alreadyExists;
   });
 
+  useEffect(() => {
+  if (!selectedDate) return;
+
+  // 1. '2026-06-10' 같은 selectedDate 문자열에서 연, 월을 쪼개냅니다.
+  const [yearStr, monthStr] = selectedDate.split('-');
+  const newYear = parseInt(yearStr, 10);
+  const newMonth = parseInt(monthStr, 10) - 1; // 자바스크립트 Month는 0부터 시작하므로 1을 빼줍니다.
+
+  // 2. 현재 월간 뷰에 세팅된 연/월과 다르다면, selectedDate에 맞춰 월간 뷰 상태를 업데이트합니다.
+  if (monthViewDate.year !== newYear || monthViewDate.month !== newMonth) {
+    setMonthViewDate({
+      year: newYear,
+      month: newMonth
+    });
+  }
+}, [selectedDate]);
 
   return (
     <>
+      <div className='main'>
       {/* 2. 일정 추가 화면 */}
       {viewMode === 'add' && (
         <TodoForm
@@ -426,11 +333,10 @@ function TodoApp() {
             setEditingItemId(null);
             setViewMode('list');
           }}
+          onDelete={handleDeleteEdit}
         />
       )}
 
-      <div className='main'>
-        
 
         {/* 1. 할 일 리스트 뷰 */}
         {viewMode === 'list' && (
@@ -469,7 +375,7 @@ function TodoApp() {
                         {hasItems && (
                           <div style={{
                             position: 'absolute',
-                            bottom: '2px',
+                            bottom: '4px',
                             width: '4px',
                             height: '4px',
                             borderRadius: '50%',
@@ -486,7 +392,7 @@ function TodoApp() {
               {/* 리스트 출력 */}
               <div className="list-container">
                 <h3 className="list-header">
-                  <span>{selectedDate} <button onClick={handleSetToday} className="today-button">오늘</button></span>
+                  <span>{selectedDate} </span>
                   <div className="header-controls">
                     {/* 지난달 루틴 가져오기 버튼 */}
                     {lastMonthRoutines.length > 0 && (
@@ -500,9 +406,8 @@ function TodoApp() {
                         지난달 루틴 복사 ({lastMonthRoutines.length})
                       </button>
                     )}
-                    {/* [일정추가] 버튼 */}
-                    
                     {/* <span className="total-count">총 {filteredItems.length}개</span> */}
+                    <button onClick={handleSetToday} className="today-button">오늘</button>
                   </div>
                 </h3>
 
@@ -521,10 +426,10 @@ function TodoApp() {
                             <span onClick={() => handleToggleTodo(todo.id)} className="status-mark">{isCompleted ? '✅' : '⬜'}</span>
                             {todo.emoji && <span className="todo-emoji">{todo.emoji}</span>}
                             <span onClick={() => {
-                                  setEditingItemId(todo.id);
-                                  setViewMode('edit');
-                                }} 
-                                className="todo-text">{todo.text}</span>
+                              setEditingItemId(todo.id);
+                              setViewMode('edit');
+                            }}
+                              className="todo-text">{todo.text}</span>
 
                             {todo.type === 'routine' && (
                               <div className="routine-badges">
@@ -535,7 +440,7 @@ function TodoApp() {
                               </div>
                             )}
                           </span>
-                          <div className="controls-group">
+                          {/* <div className="controls-group">
                             {todo.type === 'routine' && (
                               <button
                                 onClick={() => {
@@ -546,8 +451,7 @@ function TodoApp() {
                                 수정
                               </button>
                             )}
-                            
-                          </div>
+                          </div> */}
                         </li>
                       );
                     })
@@ -566,7 +470,7 @@ function TodoApp() {
             <div>
               <div className="week-chip-bar">
                 <button onClick={handlePrevWeek} className="nav-button">&lt;</button>
-                <span className="week-title">📅 {weekDays[0]} ~ {weekDays[6]} 주간 루틴</span>
+                <span className="week-title">{weekDays[0]} ~ {weekDays[6]} 주간 루틴</span>
                 <button onClick={handleNextWeek} className="nav-button">&gt;</button>
               </div>
 
@@ -574,77 +478,97 @@ function TodoApp() {
                 {activeRoutinesThisWeek.length === 0 ? (
                   <p style={{ color: 'var(--text, #888)', textAlign: 'center', padding: '24px 0', margin: 0 }}>이번 주에 활성화된 루틴이 없습니다.</p>
                 ) : (
-                  <table className="report-table">
-                    <thead>
-                      <tr className="table-row-header">
-                        <th className="table-th-left">루틴</th>
-                        {weekDays.map(d => {
-                          const dObj = new Date(d);
-                          const dayLabel = ['일', '월', '화', '수', '목', '금', '토'][dObj.getDay()];
-                          const dayNum = dObj.getDate();
-                          const isSelected = d === selectedDate;
-                          return (
-                            <th key={d} className="report-day-th" style={{ color: isSelected ? 'var(--accent, #aa3bff)' : 'var(--text, #6b6375)', fontWeight: isSelected ? 'bold' : '500' }}>
-                              <div>{dayLabel}</div>
-                              <div className="date-small">{dayNum}</div>
-                            </th>
-                          );
-                        })}
-                        <th style={{ textAlign: 'center', padding: '8px', color: 'var(--text-h, #000)' }}>달성</th>
-                      </tr>
+                  <div className="table-panel">
+                    <div className="table-title">
+                      <table className="report-table">
+                      <thead>
+                        <tr className="table-row-header">
+                          <th className="table-th-left">루틴</th>
+                        </tr>
                     </thead>
                     <tbody>
                       {activeRoutinesThisWeek.map((routine) => {
-                        let weekCompletedCount = 0;
-                        let weekActiveCount = 0;
-
                         return (
                           <tr key={routine.id} className="table-row">
                             <td className="table-td" style={{ padding: '10px 8px', fontWeight: '500', color: 'var(--text-h, #000)' }}>
                               <span className="routine-emoji">{routine.emoji}</span>
                               {routine.text}
                             </td>
-                            {weekDays.map(d => {
-                              const isActive = d >= routine.startDate && (!routine.endDate || d <= routine.endDate);
-                              const isCompleted = routine.completedDates.includes(d);
-
-                              if (isActive) {
-                                weekActiveCount++;
-                                if (isCompleted) weekCompletedCount++;
-                              }
-
-                              return (
-                                <td
-                                  key={d}
-                                  onClick={() => isActive && handleToggleTodo(routine.id, d)}
-                                  style={{
-                                    textAlign: 'center',
-                                    padding: '6px 0',
-                                    cursor: isActive ? 'pointer' : 'default',
-                                    background: d === selectedDate ? 'rgba(170, 59, 255, 0.02)' : 'transparent',
-                                  }}
-                                >
-                                  {!isActive ? (
-                                    <span style={{ color: 'var(--border, #eee)', fontSize: '12px' }}>-</span>
-                                  ) : isCompleted ? (
-                                    <span style={{ fontSize: '16px' }}>✅</span>
-                                  ) : (
-                                    <span style={{ fontSize: '16px', opacity: 0.2 }}>⬜</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                            <td style={{ textAlign: 'center', padding: '10px 4px', fontWeight: 'bold', color: 'var(--accent, #aa3bff)' }}>
-                              {weekCompletedCount}/{weekActiveCount}
-                              <div style={{ fontSize: '9px', fontWeight: 'normal', opacity: 0.7 }}>
-                                {weekActiveCount > 0 ? `${Math.round((weekCompletedCount / weekActiveCount) * 100)}%` : '0%'}
-                              </div>
-                            </td>
                           </tr>
                         );
                       })}
-                    </tbody>
-                  </table>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="table-scroll">
+                      <table className="report-table">
+                        <thead>
+                          <tr className="table-row-header">
+                            {weekDays.map(d => {
+                              const dObj = new Date(d);
+                              const dayLabel = ['일', '월', '화', '수', '목', '금', '토'][dObj.getDay()];
+                              const dayNum = dObj.getDate();
+                              const isSelected = d === selectedDate;
+                              return (
+                                <th key={d} className="report-day-th" style={{ color: isSelected ? 'var(--accent, #aa3bff)' : 'var(--text, #6b6375)', fontWeight: isSelected ? 'bold' : '500' }}>
+                                  <div>{dayLabel}</div>
+                                  <div className="date-small">{dayNum}</div>
+                                </th>
+                              );
+                            })}
+                            <th style={{ textAlign: 'center', color: 'var(--text-h, #000)' }}>달성</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activeRoutinesThisWeek.map((routine) => {
+                            let weekCompletedCount = 0;
+                            let weekActiveCount = 0;
+
+                            return (
+                              <tr key={routine.id} className="table-row">
+                                {weekDays.map(d => {
+                                  const isActive = d >= routine.startDate && (!routine.endDate || d <= routine.endDate);
+                                  const isCompleted = routine.completedDates.includes(d);
+
+                                  if (isActive) {
+                                    weekActiveCount++;
+                                    if (isCompleted) weekCompletedCount++;
+                                  }
+
+                                  return (
+                                    <td
+                                      key={d}
+                                      onClick={() => isActive && handleToggleTodo(routine.id, d)}
+                                      style={{
+                                        textAlign: 'center',
+                                        padding: '6px 0',
+                                        cursor: isActive ? 'pointer' : 'default',
+                                        background: d === selectedDate ? 'rgba(170, 59, 255, 0.02)' : 'transparent',
+                                      }}
+                                    >
+                                      {!isActive ? (
+                                        <span style={{ color: 'var(--border, #eee)', fontSize: '12px' }}>-</span>
+                                      ) : isCompleted ? (
+                                        <span style={{ fontSize: '16px' }}>✅</span>
+                                      ) : (
+                                        <span style={{ fontSize: '16px', opacity: 0.2 }}>⬜</span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                                <td style={{ textAlign: 'center', padding: '10px 4px', fontWeight: 'bold', color: 'var(--accent, #aa3bff)' }}>
+                                  {weekCompletedCount}/{weekActiveCount}
+                                  <div style={{ fontSize: '9px', fontWeight: 'normal', opacity: 0.7 }}>
+                                    {weekActiveCount > 0 ? `${Math.round((weekCompletedCount / weekActiveCount) * 100)}%` : '0%'}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -656,9 +580,10 @@ function TodoApp() {
           <>
             <TopHeader viewMode={viewMode} selectedDate={selectedDate} setViewMode={setViewMode} />
             <div>
-              <div className="month-header">
-              <button onClick={handlePrevMonth} className="nav-button">&lt;</button>
-              <span className="month-title">                  📅 {monthViewDate.year}년 {monthViewDate.month + 1}월 달성도
+              <div className="week-chip-bar">
+                <button onClick={handlePrevMonth} className="nav-button">&lt;</button>
+                <span className="month-title">
+                  {monthViewDate.year}년 {monthViewDate.month + 1}월 달성도
                 </span>
                 <button onClick={handleNextMonth} className="nav-button">&gt;</button>
               </div>
@@ -685,7 +610,7 @@ function TodoApp() {
                         let textColor = 'var(--text-h, #000)';
 
                         if (hasActiveTasks) {
-                          const rate = stats.rate;
+                          const rate = stats.rate ?? 0;
                           if (rate === 0) {
                             cellBackground = 'var(--code-bg, #f4f3ec)';
                           } else if (rate > 0 && rate <= 25) {
