@@ -121,6 +121,12 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
         onSave(data);
     };
 
+    // 투두/루틴 삭제 함수
+    const handleDeleteTodo = (e) => {
+        e.preventDefault();
+        setTodos(todos.filter((todo) => todo.id !== id));
+    };
+
     return (
         <div className="todo-form-wrapper">
             <form onSubmit={handleSubmit} className="todo-form">
@@ -135,8 +141,12 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                 type="button"
                                 disabled={mode === 'edit'}
                                 onClick={() => setItemType('todo')}
-                                className="type-toggle-button" style={{ cursor: mode === 'edit' ? 'not-allowed' : 'pointer', background: itemType === 'todo' ? 'var(--accent, #aa3bff)' : 'transparent', color: itemType === 'todo' ? '#fff' : 'var(--text, #6b6375)', fontWeight: itemType === 'todo' ? 'bold' : 'normal', opacity: mode === 'edit' && itemType !== 'todo' ? 0.5 : 1 }}
-                            >
+                                className="type-toggle-button" 
+                                style={{ cursor: mode === 'edit' ? 'not-allowed' : 'pointer', 
+                                    background: itemType === 'todo' ? 'var(--accent, #aa3bff)' : 'transparent', 
+                                    color: itemType === 'todo' ? '#fff' : 'var(--text, #6b6375)', 
+                                    fontWeight: itemType === 'todo' ? 'bold' : 'normal', 
+                                    opacity: mode === 'edit' && itemType !== 'todo' ? 0.5 : 1 }}>
                             할 일
                             </button>
                             <button
@@ -161,7 +171,6 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                     ref={triggerRef}
                                     onClick={() => setShowPicker(!showPicker)}
                                     className="emoji-trigger">
-                                >
                                     {selectedEmoji}
                                 </button>
 
@@ -169,7 +178,6 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                     <div
                                         ref={pickerRef}
                                         className="emoji-picker">
-                                    >
                                         <div className="emoji-categories-row">
                                             {EMOJI_CATEGORIES.map((cat) => (
                                                 <button
@@ -177,8 +185,8 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                                     type="button"
                                                     onClick={() => setActiveCategory(cat.id)}
                                                     title={cat.title}
-                                                    className="emoji-cat-button" style={{ background: activeCategory === cat.id ? 'var(--accent-bg, rgba(170, 59, 255, 0.1))' : 'transparent' }}
-                                                >
+                                                    className="emoji-cat-button" 
+                                                    style={{ background: activeCategory === cat.id ? 'var(--accent-bg, rgba(170, 59, 255, 0.1))' : 'transparent' }}>
                                                     {cat.icon}
                                                 </button>
                                             ))}
@@ -198,7 +206,6 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                                         setShowPicker(false);
                                                     }}
                                                     className="emoji-button">
-                                                >
                                                     {emoji}
                                                 </button>
                                             ))}
@@ -221,13 +228,12 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                     {/* 3. 루틴 전용 설정 (기한 종료일 및 알림 시간) */}
                     {itemType === 'routine' && (
                         <>
-                            <div className="routine-deadline-row">
-                                <label className="routine-label">
+                            <div className="form-row">
+                                <label className="form-label">
                                     마감 기한
                                 </label>
-                            <div>
 
-                                <div className="date-input-wrap">
+                                <div className="form-field-column">
                                     <input
                                         type="date"
                                         value={endDateValue}
@@ -238,43 +244,50 @@ function TodoForm({ mode = 'add', selectedDate, itemToEdit, onSave, onCancel }) 
                                             // 2. 핵심: 입력값이 비어있지 않으면(값이 있으면) true, 비어있으면(취소하면) false
                                             setHasDeadline(newValue !== ""); 
                                         }}
-                                        className="date-input">
-                                    />
+                                        className="date-input" />
 
                                     <span className="hint-text">
-                                        지정하지 않으면 오늘 속한 달의 마지막 날짜까지 실행됩니다.
+                                        지정하지 않으면 이번 달 마지막 날까지 반복
                                     </span>
-                                </div>
-                                
                                 </div>
                             </div>
 
-                            <div className="routine-alarm-row">
-                                <span className="routine-alarm-title">알림 설정</span>
-                                <input
-                                    type="time"
-                                    value={alarmTimeValue}
-                                    onChange={(e) => setAlarmTimeValue(e.target.value)}
-                                    className="time-input">
-                                />
+                            <div className="form-row">
+                                <span className="form-label">알림 설정</span>
+                                <div className="form-field">
+                                    <input
+                                        type="time"
+                                        value={alarmTimeValue}
+                                        onChange={(e) => setAlarmTimeValue(e.target.value)}
+                                        className="time-input" />
+                                </div>
                             </div>
                         </>
                     )}
                 </div>
                 {/* 4. 작업 버튼 */}
                 <div className="form-actions">
+                    {mode === 'edit' ? (
+
+                        <button
+                            onClick={() => handleDeleteTodo(todo.id)}
+                            className='btn btn-red btn-small'
+                        >
+                            삭제
+                        </button>
+                    ) : (
+                        
                     <button
                         type="button"
                         onClick={onCancel}
                         className="btn-cancel">
-                    >
                         취소
                     </button>
+                    )}
                     <button
                         type="submit"
                         disabled={!inputValue.trim()}
                         className="btn-submit" style={{ opacity: !inputValue.trim() ? 0.5 : 1 }}>
-                    >
                         저장
                     </button>
                 </div>
