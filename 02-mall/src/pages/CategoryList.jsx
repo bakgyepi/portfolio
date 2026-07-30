@@ -43,7 +43,7 @@ function Category(){
                     <li key={item.id}>
                         <Link to={`/detail/${item.id}`}>
                         <figure>
-                            <img src={`../src/assets/products/prd_${item.id}.png`} />
+                            <img src={`${import.meta.env.BASE_URL}assets/products/prd_${item.id}.png`} />
                         </figure>
                         <div className="productInfo">
                             <p>{item.title}</p>

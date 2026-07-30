@@ -88,7 +88,7 @@ function Cart(){
                                 return(
                                     <tr key={b.id}>
                                         <td>
-                                            <img src={'../src/assets/products/prd_' + b.id + '.png'} width="100%" />
+                                            <img src={import.meta.env.BASE_URL + 'assets/products/prd_' + b.id + '.png'} width="100%" />
                                         </td>
                                         <td>
                                             <p>{ b.name }</p>

@@ -107,7 +107,7 @@ function Detail() {
                 </button>
             </div>
             <div className="imgBox">
-                <img src={'../src/assets/products/prd_' + product.id + '.png'} width="100%" />
+                <img src={import.meta.env.BASE_URL + 'assets/products/prd_' + product.id + '.png'} width="100%" />
                 <span>잔여 {product.stock}개</span>
             </div>
             <div className="textBox">
