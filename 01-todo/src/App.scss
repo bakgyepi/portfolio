@@ -1,0 +1,694 @@
+.flex-1 {
+    flex: 1;
+}
+.main {
+    width: min(100%, 640px);
+    margin: 0 auto;
+}
+
+.todo-form-wrapper {
+    background: var(--bg, #fff);
+    box-sizing: border-box;
+    padding: 64px 24px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.todo-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.todo-form-main {
+    flex: 1;
+}
+
+.todo-type-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.todo-title {
+    color: var(--text-h, #000);
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.type-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--code-bg, #f4f3ec);
+    border-radius: 6px;
+    border: 1px solid var(--border, #ccc);
+}
+
+.type-toggle-button {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+
+.form-label {
+    text-align: left;
+    font-size: 14px;
+    width: 100px;
+    color: var(--text, #6b6375);
+    font-weight: bold;
+}
+
+.form-field {
+    display: flex;
+    flex: 1;
+    align-items: center;
+}
+
+.form-field-column {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.emoji-wrap {
+    position: relative;
+    margin-right: 8px;
+}
+
+.emoji-trigger {
+    font-size: 20px;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 6px;
+    background: var(--bg, #fff);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.emoji-picker {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 1000;
+    width: 260px;
+    background: var(--bg, #fff);
+    border: 1px solid var(--border, #e5e4e7);
+    border-radius: 12px;
+    box-shadow: var(--shadow, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.emoji-categories-row {
+    display: flex;
+    border-bottom: 1px solid var(--border, #e5e4e7);
+    padding-bottom: 8px;
+    gap: 4px;
+}
+
+.emoji-cat-button {
+    flex: 1;
+    font-size: 16px;
+    padding: 4px 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.emoji-category-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--text, #6b6375);
+    text-align: left;
+    padding: 0 2px;
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.emoji-button {
+    font-size: 20px;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.todo-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 6px;
+    height: 42px;
+    box-sizing: border-box;
+    color: var(--text-h, #000);
+    outline: none;
+}
+
+.date-input-wrap {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.date-input {
+    padding: 12px 10px;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+    background: var(--bg, #fff);
+    color: var(--text-h, #000);
+    box-sizing: border-box;
+}
+
+.hint-text {
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: left;
+    color: var(--text, #6b6375);
+}
+
+.time-input {
+    padding: 12px 10px;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 6px;
+    font-size: 13px;
+    background: var(--bg, #fff);
+    color: var(--text-h, #000);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+
+    button {
+        padding: 16px 0;
+    }
+}
+
+.btn-delete {
+    border-radius: 4px;
+    border: 1px solid #888;
+    width: 40%;
+}
+
+.btn-cancel {
+    flex: 1;
+    border: 1px solid var(--border, #ccc);
+    background: var(--code-bg, #f4f3ec);
+    color: var(--text-h, #000);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.btn-submit {
+    flex: 1;
+    border: none;
+    background: var(--accent, #aa3bff);
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* App.tsx converted classes */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 64px 16px 16px;
+}
+
+.app-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-h, #000)
+}
+
+.view-mode-toggle {
+    display: flex;
+    background: var(--code-bg, #f4f3ec);
+    border-radius: 8px
+}
+
+.view-mode-button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500
+}
+
+.view-mode-button.active {
+    background-color: #aa3bff;
+}
+
+.day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    background: var(--code-bg, #f4f3ec);
+    padding: 8px 12px;
+    border-radius: 10px
+}
+
+.nav-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px
+}
+
+.week-scroll {
+    display: flex;
+    overflow-x: auto;
+    flex: 1;
+    justify-content: space-around;
+}
+
+.day-button {
+    border: none;
+    border-radius: 4px;
+    padding: 4px 4px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 42px;
+    position: relative
+}
+
+.day-label {
+    font-size: 11px
+}
+
+.day-number {
+    font-size: 15px;
+    margin: 2px 0 4px;
+}
+
+.today-button {
+    border: 1px solid var(--border, #ccc);
+    background: var(--bg, #fff);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--text, #6b6375);
+    margin-left: 4px
+}
+
+.list-container {
+    background: var(--bg, #fff);
+    padding: 24px 16px;
+}
+
+.list-header {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: var(--text-h, #000);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    span {
+        display: flex;
+        align-items: center;
+    }
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.import-button {
+    font-size: 11px;
+    background: var(--accent-bg, rgba(170, 59, 255, 0.1));
+    border: 1px solid var(--accent, #aa3bff);
+    border-radius: 6px;
+    padding: 4px 8px;
+    color: var(--accent, #aa3bff);
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px
+}
+
+.btn-add-float {
+    position: fixed;
+    right: 32px;
+    bottom: 64px;
+    font-size: 24px;
+    width: 54px;
+    height: 54px;
+    background: var(--accent, #aa3bff);
+    border: none;
+    border-radius: 999px;
+    color: #fff;
+    cursor: pointer;
+    display: block;
+}
+
+.total-count {
+    font-size: 13px;
+    font-weight: normal;
+    color: var(--text, #888)
+}
+
+.items-list {
+    list-style: none;
+    padding: 0;
+    margin: 0
+}
+
+.empty-list {
+    color: var(--text, #888);
+    font-size: 14px;
+    text-align: center;
+    padding: 24px 0;
+    margin: 0
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border, #eee)
+}
+
+.todo-item {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1
+}
+
+.status-mark {
+    font-size: 16px
+}
+
+.todo-emoji {
+    font-size: 16px
+}
+
+.todo-text {
+    font-size: 13px
+}
+
+.controls-group {
+    display: flex;
+    gap: 4px
+}
+
+.edit-button {
+    background: var(--code-bg, #f4f3ec);
+    color: var(--text-h, #000);
+    border: 1px solid var(--border, #ccc);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px
+}
+
+.week-chip-bar {
+    display: flex;
+    padding: 0 12px;
+    justify-content: space-between;
+}
+
+.month-title {
+    font-weight: bold;
+    font-size: 16px;
+    color: var(--text-h, #000)
+}
+
+.month-container {
+    background: var(--bg, #fff);
+    padding: 16px
+}
+
+.weekdays-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 8px;
+    color: var(--text, #6b6375)
+}
+
+.weekday-sun {
+    color: #ff4d4d
+}
+
+.weekday-sat {
+    color: #aa3bff
+}
+
+.month-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px
+}
+
+.month-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px
+}
+
+.cell {
+    padding: 6px;
+    border-radius: 6px
+}
+
+.cell .date {
+    font-size: 11px
+}
+
+.cell .date-small {
+    font-size: 9px;
+    opacity: 0.8
+}
+
+.routine-badges {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap
+}
+
+.badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 20px;
+    //background: var(--accent-bg, rgba(170, 59, 255, 0.1));
+    color: var(--accent, #aa3bff);
+    font-weight: bold
+}
+
+.badge-alarm {
+    // background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px
+}
+
+.panel-container {
+    overflow-x: auto;
+    background: var(--bg, #fff);
+    padding: 16px
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+}
+
+.table-row-header {
+    height: 90px;
+    border-bottom: 2px solid var(--border, #eee);
+    th {
+        text-align: center;
+    }
+}
+
+.table-th-left {
+    text-align: left;
+    padding: 8px;
+    color: var(--text-h, #000)
+}
+
+.table-th-center {
+    text-align: center;
+    padding: 8px;
+    color: var(--text-h, #000)
+}
+
+.table-td {
+    text-align: center;
+    padding: 6px 0
+}
+
+/* legend swatches */
+.legend {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--text, #6b6375)
+}
+
+.legend .sw {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border, #eee)
+}
+
+.legend .sw.code-bg {
+    background: var(--code-bg, #f4f3ec)
+}
+
+/* color-mix swatches handled inline by style when necessary */
+
+/* modal / import list */
+.import-list {
+    max-height: 180px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.import-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--border, #eee);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-h, #000)
+}
+
+.import-label span {
+    flex: 1
+}
+
+/* buttons in modals */
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end
+}
+
+.modal-actions .btn-like {
+    background: var(--code-bg, #f4f3ec);
+    color: var(--text-h, #000);
+    border: 1px solid var(--border, #ccc);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: bold
+}
+
+/* additional helpers */
+.week-title {
+    font-weight: bold;
+    font-size: 15px;
+    color: var(--text-h, #000)
+}
+
+.report-day-th {
+    min-width: 36px;
+    text-align: center;
+    padding: 8px 4px
+}
+
+.table-row {
+    border-bottom: 1px solid var(--border, #eee);
+    height:90px;
+}
+
+.table-td {
+    padding: 6px 0;
+    text-align: center
+}
+
+.routine-emoji {
+    margin-right: 6px
+}
+
+.legend-swatches {
+    display: flex;
+    gap: 3px
+}
+
+.table-panel {
+    display: flex;
+}
+.table-scroll {
+    overflow-y: auto;
+    table {
+        width: 100%;
+    }
+}
