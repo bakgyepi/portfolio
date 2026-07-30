@@ -15,7 +15,7 @@ const queryClient = new QueryClient()
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
+      <BrowserRouter basename="/portfolio/02-mall/">
         <App />
       </BrowserRouter>
     </Provider>
