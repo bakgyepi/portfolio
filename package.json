@@ -1,5 +1,9 @@
 {
+  "scripts": {
+    "deploy": "gh-pages -d home --add"
+  },
   "devDependencies": {
+    "gh-pages": "^6.3.0",
     "sass-embedded": "^1.100.0"
   }
 }
