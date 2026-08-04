@@ -13,7 +13,7 @@ import { store, persistor } from "./store";
 createRoot(document.getElementById('root')).render(
 <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-        <BrowserRouter>
+        <BrowserRouter basename="/portfolio/00-blog/">
             <App />
         </BrowserRouter>
     </PersistGate>
